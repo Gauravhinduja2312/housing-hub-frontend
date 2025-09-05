@@ -6,118 +6,117 @@ import { Home, LogIn, UserPlus, Building, Menu, X, PlusCircle, House, MapPin, Do
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Add loading state
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser");
-    const storedToken = localStorage.getItem("token");
-    if (storedUser && storedToken) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false); // Set loading to false after checking
-  }, []);
+    useEffect(() => {
+        const storedUser = localStorage.getItem("currentUser");
+        const storedToken = localStorage.getItem("token");
+        if (storedUser && storedToken) {
+            setCurrentUser(JSON.parse(storedUser));
+        }
+        setLoading(false);
+    }, []);
 
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem("currentUser");
-      localStorage.removeItem("token");
-    }
-  }, [currentUser]);
+    useEffect(() => {
+        if (currentUser) {
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        } else {
+            localStorage.removeItem("currentUser");
+            localStorage.removeItem("token");
+        }
+    }, [currentUser]);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem("token");
-    if (token) return { Authorization: `Bearer ${token}` };
-    return {};
-  };
+    const getAuthHeaders = useCallback(() => {
+        const token = localStorage.getItem("token");
+        if (token) return { Authorization: `Bearer ${token}` };
+        return {};
+    }, []);
 
-  const logout = () => {
-    setCurrentUser(null);
-  };
+    const logout = () => {
+        setCurrentUser(null);
+    };
 
-  // Pass loading state to consumers
-  return (
-    <AuthContext.Provider value={{ currentUser, setCurrentUser, getAuthHeaders, logout, loading }}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+    return (
+        <AuthContext.Provider value={{ currentUser, setCurrentUser, getAuthHeaders, logout, loading }}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => useContext(AuthContext);
 
 // --- Navbar Component ---
 const Navbar = () => {
-  const { currentUser, logout } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
+    const { currentUser, logout } = useAuth();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const navigate = useNavigate();
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
-  return (
-    <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 shadow-lg sticky top-0 z-50 rounded-b-xl">
-      <div className="container mx-auto flex justify-between items-center flex-wrap">
-        <Link to="/" className="flex items-center space-x-2 cursor-pointer">
-          <Building className="h-8 w-8 text-white" />
-          <span className="text-white text-3xl font-extrabold tracking-tight">Housing Hub</span>
-        </Link>
-        <div className="md:hidden"><button onClick={toggleMenu} className="text-white focus:outline-none">{isMenuOpen ? <X size={28} /> : <Menu size={28} />}</button></div>
-        <div className={`w-full md:flex md:items-center md:w-auto ${isMenuOpen ? 'block' : 'hidden'}`}>
-          <ul className="flex flex-col md:flex-row md:space-x-6 mt-4 md:mt-0 items-center text-lg font-semibold">
-            <li><Link to="/" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><Home size={20} /><span>Home</span></Link></li>
-            {currentUser ? (
-              <>
-                {currentUser.userType === 'landlord' && (
-                    <>
-                        <li><Link to="/dashboard" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><LayoutDashboard size={20} /><span>Dashboard</span></Link></li>
-                        <li><Link to="/add-property" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><PlusCircle size={20} /><span>Add Property</span></Link></li>
-                    </>
-                )}
-                {currentUser.userType === 'student' && (
-                    <li><Link to="/favorites" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><Heart size={20} /><span>My Favorites</span></Link></li>
-                )}
-                <li><Link to="/properties" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><House size={20} /><span>View Properties</span></Link></li>
-                <li><Link to="/messages" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><MessageSquare size={20} /><span>Messages</span></Link></li>
-                <li><span className="text-blue-200 py-2 px-3">Hello, {currentUser.email}!</span></li>
-                <li><button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105">Logout</button></li>
-              </>
-            ) : (
-              <>
-                <li><Link to="/login" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><LogIn size={20} /><span>Login</span></Link></li>
-                <li><Link to="/signup" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105"><UserPlus className="inline-block mr-2" size={20} />Sign Up</Link></li>
-              </>
-            )}
-          </ul>
-        </div>
-      </div>
-    </nav>
-  );
+    return (
+        <nav className="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 shadow-lg sticky top-0 z-50 rounded-b-xl">
+            <div className="container mx-auto flex justify-between items-center flex-wrap">
+                <Link to="/" className="flex items-center space-x-2 cursor-pointer">
+                    <Building className="h-8 w-8 text-white" />
+                    <span className="text-white text-3xl font-extrabold tracking-tight">Housing Hub</span>
+                </Link>
+                <div className="md:hidden"><button onClick={toggleMenu} className="text-white focus:outline-none">{isMenuOpen ? <X size={28} /> : <Menu size={28} />}</button></div>
+                <div className={`w-full md:flex md:items-center md:w-auto ${isMenuOpen ? 'block' : 'hidden'}`}>
+                    <ul className="flex flex-col md:flex-row md:space-x-6 mt-4 md:mt-0 items-center text-lg font-semibold">
+                        <li><Link to="/" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><Home size={20} /><span>Home</span></Link></li>
+                        {currentUser ? (
+                            <>
+                                {currentUser.userType === 'landlord' && (
+                                    <>
+                                        <li><Link to="/dashboard" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><LayoutDashboard size={20} /><span>Dashboard</span></Link></li>
+                                        <li><Link to="/add-property" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><PlusCircle size={20} /><span>Add Property</span></Link></li>
+                                    </>
+                                )}
+                                {currentUser.userType === 'student' && (
+                                    <li><Link to="/favorites" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><Heart size={20} /><span>My Favorites</span></Link></li>
+                                )}
+                                <li><Link to="/properties" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><House size={20} /><span>View Properties</span></Link></li>
+                                <li><Link to="/messages" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><MessageSquare size={20} /><span>Messages</span></Link></li>
+                                <li><span className="text-blue-200 py-2 px-3">Hello, {currentUser.email}!</span></li>
+                                <li><button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105">Logout</button></li>
+                            </>
+                        ) : (
+                            <>
+                                <li><Link to="/login" className="text-white hover:text-blue-200 py-2 px-3 flex items-center space-x-2"><LogIn size={20} /><span>Login</span></Link></li>
+                                <li><Link to="/signup" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105"><UserPlus className="inline-block mr-2" size={20} />Sign Up</Link></li>
+                            </>
+                        )}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    );
 };
 
 // --- App Layout Component ---
 const AppLayout = () => {
-  return (
-    <div className="font-['Inter'] antialiased">
-      <Navbar />
-      <main>
-        <Outlet />
-      </main>
-    </div>
-  );
+    return (
+        <div className="font-['Inter'] antialiased">
+            <Navbar />
+            <main>
+                <Outlet />
+            </main>
+        </div>
+    );
 };
 
 // --- Helper Components ---
 const MapView = ({ properties }) => {
     return (
-      <div className="h-[400px] w-full mb-8 rounded-2xl shadow-xl border overflow-hidden flex items-center justify-center bg-gray-100">
-          <p className="text-gray-500">Map functionality is currently unavailable.</p>
-      </div>
+        <div className="h-[400px] w-full mb-8 rounded-2xl shadow-xl border overflow-hidden flex items-center justify-center bg-gray-100">
+            <p className="text-gray-500">Map functionality is currently unavailable.</p>
+        </div>
     );
 };
 const StarRating = ({ rating, setRating, isInteractive = true }) => {
@@ -140,46 +139,46 @@ const HomeView = () => {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     return (
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl w-full bg-white p-12 rounded-2xl shadow-2xl border border-gray-200 text-center">
-          <h1 className="text-5xl font-extrabold text-gray-800 mb-4">
-            Welcome to <span className="text-indigo-600">Housing Hub</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Your one-step solution for finding the perfect student accommodation.
-          </p>
-          {currentUser ? (
-            <div>
-              <p className="text-xl text-gray-700 mb-2">You are logged in as <span className="font-bold text-indigo-700">{currentUser.email}</span>.</p>
-              <p className="text-lg text-gray-600 mb-2">User Type: <span className="font-semibold capitalize">{currentUser.userType}</span></p>
-              <p className="text-sm text-gray-500 mb-8">Your User ID: {currentUser.uid}</p>
-              {currentUser.userType === 'landlord' ? (
-                <button onClick={() => navigate('/add-property')} className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
-                  <PlusCircle className="inline-block mr-2" />Post a New Property
-                </button>
-              ) : (
-                <button onClick={() => navigate('/properties')} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
-                  <House className="inline-block mr-2" />View Available Properties
-                </button>
-              )}
-              <div className="mt-8 p-4 bg-blue-50 rounded-xl text-blue-800 border border-blue-200">
-                <p className="font-semibold">Data Persistence Note:</p>
-                <p>Your user account is now stored in a **MongoDB database**! You'll stay logged in even if you refresh.</p>
-              </div>
+        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl w-full bg-white p-12 rounded-2xl shadow-2xl border border-gray-200 text-center">
+                <h1 className="text-5xl font-extrabold text-gray-800 mb-4">
+                    Welcome to <span className="text-indigo-600">Housing Hub</span>
+                </h1>
+                <p className="text-xl text-gray-600 mb-8">
+                    Your one-step solution for finding the perfect student accommodation.
+                </p>
+                {currentUser ? (
+                    <div>
+                        <p className="text-xl text-gray-700 mb-2">You are logged in as <span className="font-bold text-indigo-700">{currentUser.email}</span>.</p>
+                        <p className="text-lg text-gray-600 mb-2">User Type: <span className="font-semibold capitalize">{currentUser.userType}</span></p>
+                        <p className="text-sm text-gray-500 mb-8">Your User ID: {currentUser.uid}</p>
+                        {currentUser.userType === 'landlord' ? (
+                            <button onClick={() => navigate('/add-property')} className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                                <PlusCircle className="inline-block mr-2" />Post a New Property
+                            </button>
+                        ) : (
+                            <button onClick={() => navigate('/properties')} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                                <House className="inline-block mr-2" />View Available Properties
+                            </button>
+                        )}
+                        <div className="mt-8 p-4 bg-blue-50 rounded-xl text-blue-800 border border-blue-200">
+                            <p className="font-semibold">Data Persistence Note:</p>
+                            <p>Your user account is now stored in a **MongoDB database**! You'll stay logged in even if you refresh.</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div>
+                        <p className="text-lg text-gray-600 mb-8">
+                            Please <Link to="/login" className="text-indigo-600 font-semibold hover:underline">Login</Link> or <Link to="/signup" className="text-green-600 font-semibold hover:underline">Sign Up</Link> to explore properties and manage your listings.
+                        </p>
+                        <div className="flex justify-center space-x-4">
+                            <button onClick={() => navigate('/login')} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><LogIn className="inline-block mr-2" />Login</button>
+                            <button onClick={() => navigate('/signup')} className="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><UserPlus className="inline-block mr-2" />Sign Up</button>
+                        </div>
+                    </div>
+                )}
             </div>
-          ) : (
-            <div>
-              <p className="text-lg text-gray-600 mb-8">
-                Please <Link to="/login" className="text-indigo-600 font-semibold hover:underline">Login</Link> or <Link to="/signup" className="text-green-600 font-semibold hover:underline">Sign Up</Link> to explore properties and manage your listings.
-              </p>
-              <div className="flex justify-center space-x-4">
-                <button onClick={() => navigate('/login')} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><LogIn className="inline-block mr-2" />Login</button>
-                <button onClick={() => navigate('/signup')} className="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><UserPlus className="inline-block mr-2" />Sign Up</button>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
     );
 };
 const Login = () => {
@@ -189,7 +188,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-  
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(""); setLoading(true);
@@ -212,7 +211,7 @@ const Login = () => {
             setLoading(false);
         }
     };
-  
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
             <div className="max-w-md w-full bg-white shadow-lg rounded-2xl p-8">
@@ -239,7 +238,7 @@ const Signup = () => {
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-  
+
     const handleSignupSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -276,7 +275,7 @@ const Signup = () => {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'OTP verification failed.');
-            
+
             const userToStore = { email: data.email, uid: data.userId, userType: data.userType };
             setCurrentUser(userToStore);
             localStorage.setItem("token", data.token);
@@ -288,7 +287,7 @@ const Signup = () => {
             setLoading(false);
         }
     };
-    
+
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
             <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-2xl border">
@@ -339,35 +338,36 @@ const PropertiesView = () => {
     const [filterBedrooms, setFilterBedrooms] = useState('');
     const [filterBathrooms, setFilterBathrooms] = useState('');
     const [filterPropertyType, setFilterPropertyType] = useState('');
-  
-    useEffect(() => {
-        const fetchPropertiesAndFavorites = async () => {
-            setLoading(true);
-            try {
-                const propsResponse = await fetch('http://localhost:3001/api/properties');
-                const propsData = await propsResponse.json();
-                if (!propsResponse.ok) throw new Error(propsData.message || 'Failed to fetch properties');
-                setProperties(propsData);
 
-                if (currentUser && currentUser.userType === 'student') {
-                    const favsResponse = await fetch('http://localhost:3001/api/favorites', { headers: getAuthHeaders() });
-                    const favsData = await favsResponse.json();
-                    if (!favsResponse.ok) throw new Error(favsData.message || 'Failed to fetch favorites');
-                    setFavorites(new Set(favsData.map(fav => fav._id))); 
-                }
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+    const fetchPropertiesAndFavorites = useCallback(async () => {
+        setLoading(true);
+        try {
+            const propsResponse = await fetch('http://localhost:3001/api/properties');
+            const propsData = await propsResponse.json();
+            if (!propsResponse.ok) throw new Error(propsData.message || 'Failed to fetch properties');
+            setProperties(propsData);
+
+            if (currentUser && currentUser.userType === 'student') {
+                const favsResponse = await fetch('http://localhost:3001/api/favorites', { headers: getAuthHeaders() });
+                const favsData = await favsResponse.json();
+                if (!favsResponse.ok) throw new Error(favsData.message || 'Failed to fetch favorites');
+                setFavorites(new Set(favsData.map(fav => fav._id)));
             }
-        };
-        fetchPropertiesAndFavorites();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     }, [currentUser, getAuthHeaders]);
+
+    useEffect(() => {
+        fetchPropertiesAndFavorites();
+    }, [fetchPropertiesAndFavorites]);
 
     const handleToggleFavorite = async (propertyId) => {
         const isFavorited = favorites.has(propertyId);
         const newFavorites = new Set(favorites);
-        
+
         try {
             if (isFavorited) {
                 await fetch(`http://localhost:3001/api/favorites/${propertyId}`, { method: 'DELETE', headers: getAuthHeaders() });
@@ -397,14 +397,14 @@ const PropertiesView = () => {
             alert(err.message);
         }
     };
-    
+
     const filteredProperties = properties.filter(property => {
-      const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) || (property.description && property.description.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesPrice = (!filterPriceMin || property.price >= parseInt(filterPriceMin)) && (!filterPriceMax || property.price <= parseInt(filterPriceMax));
-      const matchesBedrooms = !filterBedrooms || property.bedrooms >= parseInt(filterBedrooms);
-      const matchesBathrooms = !filterBathrooms || property.bathrooms >= parseInt(filterBathrooms);
-      const matchesType = !filterPropertyType || property.property_type === filterPropertyType;
-      return matchesSearch && matchesPrice && matchesBedrooms && matchesBathrooms && matchesType;
+        const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) || (property.description && property.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        const matchesPrice = (!filterPriceMin || property.price >= parseInt(filterPriceMin)) && (!filterPriceMax || property.price <= parseInt(filterPriceMax));
+        const matchesBedrooms = !filterBedrooms || property.bedrooms >= parseInt(filterBedrooms);
+        const matchesBathrooms = !filterBathrooms || property.bathrooms >= parseInt(filterBathrooms);
+        const matchesType = !filterPropertyType || property.property_type === filterPropertyType;
+        return matchesSearch && matchesPrice && matchesBedrooms && matchesBathrooms && matchesType;
     });
 
     const sortedProperties = [...filteredProperties].sort((a, b) => {
@@ -416,13 +416,13 @@ const PropertiesView = () => {
     });
 
     const clearFilters = () => {
-      setSearchTerm(''); setFilterPriceMin(''); setFilterPriceMax('');
-      setFilterBedrooms(''); setFilterBathrooms(''); setFilterPropertyType('');
+        setSearchTerm(''); setFilterPriceMin(''); setFilterPriceMax('');
+        setFilterBedrooms(''); setFilterBathrooms(''); setFilterPropertyType('');
     };
-    
+
     if (loading) return <div className="min-h-screen flex justify-center items-center"><p>Loading properties...</p></div>;
     if (error) return <div className="min-h-screen flex justify-center items-center"><p className="text-xl text-red-500">{error}</p></div>;
-    
+
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
@@ -456,24 +456,24 @@ const PropertiesView = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedProperties.length > 0 ? (
-                    sortedProperties.map((property) => (
-                        <div key={property._id} className="bg-white rounded-2xl shadow-xl border overflow-hidden hover:shadow-2xl transition-shadow duration-300 relative">
-                            <img src={property.image_url || `https://placehold.co/400x300/E0E0E0/333333?text=No+Image`} alt={property.title} className="w-full h-48 object-cover"/>
-                            {currentUser?.userType === 'student' && (<button onClick={() => handleToggleFavorite(property._id)} className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md"><Heart size={24} className={`transition-colors ${favorites.has(property._id) ? 'text-red-500 fill-current' : 'text-gray-400'}`} /></button>)}
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-gray-800 mb-2 truncate">{property.title}</h3>
-                                <p className="text-indigo-600 text-2xl font-bold mb-4">₹{property.price.toLocaleString()}</p>
-                                <div className="flex items-center text-gray-600 mb-4"><MapPin size={18} className="mr-2" /><span>{property.address}, {property.city}</span></div>
-                                <button onClick={() => navigate(`/properties/${property._id}`)} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">View Details</button>
-                                {currentUser?.userType === 'landlord' && String(currentUser.uid) === String(property.landlord_id) && (
-                                <div className="flex justify-between mt-4">
-                                    <Link to={`/edit-property/${property._id}`} className="text-indigo-600 hover:text-indigo-800 flex items-center"><Edit size={16} className="mr-1" /> Edit</Link>
-                                    <button onClick={() => handleDeleteProperty(property._id, property.title)} className="text-red-600 hover:text-red-800 flex items-center"><Trash2 size={16} className="mr-1" /> Delete</button>
+                        sortedProperties.map((property) => (
+                            <div key={property._id} className="bg-white rounded-2xl shadow-xl border overflow-hidden hover:shadow-2xl transition-shadow duration-300 relative">
+                                <img src={property.image_url || `https://placehold.co/400x300/E0E0E0/333333?text=No+Image`} alt={property.title} className="w-full h-48 object-cover"/>
+                                {currentUser?.userType === 'student' && (<button onClick={() => handleToggleFavorite(property._id)} className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md"><Heart size={24} className={`transition-colors ${favorites.has(property._id) ? 'text-red-500 fill-current' : 'text-gray-400'}`} /></button>)}
+                                <div className="p-6">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-2 truncate">{property.title}</h3>
+                                    <p className="text-indigo-600 text-2xl font-bold mb-4">₹{property.price.toLocaleString()}</p>
+                                    <div className="flex items-center text-gray-600 mb-4"><MapPin size={18} className="mr-2" /><span>{property.address}, {property.city}</span></div>
+                                    <button onClick={() => navigate(`/properties/${property._id}`)} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">View Details</button>
+                                    {currentUser?.userType === 'landlord' && String(currentUser.uid) === String(property.landlord_id) && (
+                                        <div className="flex justify-between mt-4">
+                                            <Link to={`/edit-property/${property._id}`} className="text-indigo-600 hover:text-indigo-800 flex items-center"><Edit size={16} className="mr-1" /> Edit</Link>
+                                            <button onClick={() => handleDeleteProperty(property._id, property.title)} className="text-red-600 hover:text-red-800 flex items-center"><Trash2 size={16} className="mr-1" /> Delete</button>
+                                        </div>
+                                    )}
                                 </div>
-                                )}
                             </div>
-                        </div>
-                    ))
+                        ))
                     ) : (<p className="text-center text-gray-600 md:col-span-3">No properties match your filter criteria.</p>)}
                 </div>
             </div>
@@ -493,30 +493,41 @@ const PropertyDetailsView = () => {
     const viewRecorded = useRef(false);
     const [selectedImage, setSelectedImage] = useState(null);
 
-    useEffect(() => {
-        const fetchPropertyAndReviews = async () => {
-            if (!propertyId || propertyId === 'undefined') { setLoading(false); setError("Invalid property ID."); return; }
-            setLoading(true);
-            try {
-                const propResponse = await fetch(`http://localhost:3001/api/properties/${propertyId}`);
-                const propData = await propResponse.json();
-                if (!propResponse.ok) throw new Error(propData.message || 'Failed to fetch details.');
-                setProperty(propData);
-                if(propData.images?.length > 0) setSelectedImage(propData.images[0]);
-                const revResponse = await fetch(`http://localhost:3001/api/properties/${propertyId}/reviews`);
-                const revData = await revResponse.json();
-                if (!revResponse.ok) throw new Error(revData.message || 'Failed to fetch reviews.');
-                setReviews(revData);
-            } catch (err) { setError(err.message); }
-            finally { setLoading(false); }
-        };
+    const fetchPropertyAndReviews = useCallback(async () => {
+        if (!propertyId || propertyId === 'undefined') {
+            setLoading(false);
+            setError("Invalid property ID.");
+            return;
+        }
+        setLoading(true);
+        try {
+            const propResponse = await fetch(`http://localhost:3001/api/properties/${propertyId}`);
+            const propData = await propResponse.json();
+            if (!propResponse.ok) throw new Error(propData.message || 'Failed to fetch details.');
+            setProperty(propData);
+            if(propData.images?.length > 0) setSelectedImage(propData.images[0]);
+            const revResponse = await fetch(`http://localhost:3001/api/properties/${propertyId}/reviews`);
+            const revData = await revResponse.json();
+            if (!revResponse.ok) throw new Error(revData.message || 'Failed to fetch reviews.');
+            setReviews(revData);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [propertyId]);
 
+    useEffect(() => {
+        fetchPropertyAndReviews();
+    }, [fetchPropertyAndReviews]);
+
+    useEffect(() => {
         if (propertyId && propertyId !== 'undefined' && !viewRecorded.current) {
             fetch(`http://localhost:3001/api/properties/${propertyId}/view`, { method: 'POST' }).catch(err => console.error("Failed to record view:", err));
             viewRecorded.current = true;
         }
-        fetchPropertyAndReviews();
-    }, [propertyId, getAuthHeaders]);
+    }, [propertyId]);
+
 
     const handleReviewSubmit = async (e) => {
         e.preventDefault();
@@ -530,7 +541,7 @@ const PropertyDetailsView = () => {
             const revResponse = await fetch(`http://localhost:3001/api/properties/${propertyId}/reviews`);
             const revData = await revResponse.json();
             setReviews(revData);
-            setNewReviewText(""); 
+            setNewReviewText("");
             setNewRating(0);
         } catch (err) { alert(`Error: ${err.message}`); }
     };
@@ -550,7 +561,7 @@ const PropertyDetailsView = () => {
     if (loading) return <div className="min-h-screen flex justify-center items-center"><p>Loading...</p></div>;
     if (error) return <div className="min-h-screen flex justify-center items-center"><p className="text-xl text-red-500">{error}</p></div>;
     if (!property) return <div className="min-h-screen flex justify-center items-center"><p>Property not found.</p></div>;
-    
+
     const averageRating = reviews.length > 0 ? reviews.reduce((acc, rev) => acc + rev.rating, 0) / reviews.length : 0;
 
     return (
@@ -558,10 +569,10 @@ const PropertyDetailsView = () => {
             <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-xl border">
                 <button onClick={() => navigate('/properties')} className="mb-6 inline-flex items-center px-4 py-2 border rounded-full hover:bg-gray-100"><ArrowLeft size={20} className="mr-2" /> Back</button>
                 {property.images?.length > 0 && (
-                  <div className="mb-8">
-                    <img src={selectedImage || property.images[0]} alt={property.title} className="w-full h-96 object-cover rounded-xl mb-4 shadow-md"/>
-                    <div className="flex overflow-x-auto space-x-2 p-2">{property.images.map((image, index) => (<img key={index} src={image} alt={`Thumbnail ${index + 1}`} className={`w-24 h-20 object-cover rounded-md cursor-pointer border-2 transition-all ${selectedImage === image ? 'border-indigo-500' : 'border-transparent'}`} onClick={() => setSelectedImage(image)}/>))}</div>
-                  </div>
+                    <div className="mb-8">
+                        <img src={selectedImage || property.images[0]} alt={property.title} className="w-full h-96 object-cover rounded-xl mb-4 shadow-md"/>
+                        <div className="flex overflow-x-auto space-x-2 p-2">{property.images.map((image, index) => (<img key={index} src={image} alt={`Thumbnail ${index + 1}`} className={`w-24 h-20 object-cover rounded-md cursor-pointer border-2 transition-all ${selectedImage === image ? 'border-indigo-500' : 'border-transparent'}`} onClick={() => setSelectedImage(image)}/>))}</div>
+                    </div>
                 )}
                 <div className="flex justify-between items-start">
                     <div><h1 className="text-5xl font-extrabold text-gray-800 mb-4">{property.title}</h1><p className="text-indigo-600 text-3xl font-bold mb-6">₹{property.price.toLocaleString()}</p></div>
@@ -576,8 +587,8 @@ const PropertyDetailsView = () => {
                 {property.description && <div className="mb-8"><h3 className="text-2xl font-bold mb-3">Description</h3><p className="text-lg leading-relaxed">{property.description}</p></div>}
                 {property.amenities && <div className="mb-8"><h3 className="text-2xl font-bold mb-3">Amenities</h3><div className="flex flex-wrap gap-3">{property.amenities.split(',').map((a, i) => <span key={i} className="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full">{a.trim()}</span>)}</div></div>}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  {property.floor_plan_url && (<div><h3 className="text-2xl font-bold mb-3">Floor Plan</h3><img src={property.floor_plan_url} alt="Floor Plan" className="w-full rounded-xl shadow-md"/></div>)}
-                  {property.virtual_tour_url && (<div><h3 className="text-2xl font-bold mb-3">Virtual Tour</h3><a href={property.virtual_tour_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-6 py-3 border rounded-full shadow-sm text-white bg-indigo-600"><Image size={20} className="mr-2"/> Start Virtual Tour</a></div>)}
+                    {property.floor_plan_url && (<div><h3 className="text-2xl font-bold mb-3">Floor Plan</h3><img src={property.floor_plan_url} alt="Floor Plan" className="w-full rounded-xl shadow-md"/></div>)}
+                    {property.virtual_tour_url && (<div><h3 className="text-2xl font-bold mb-3">Virtual Tour</h3><a href={property.virtual_tour_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-6 py-3 border rounded-full shadow-sm text-white bg-indigo-600"><Image size={20} className="mr-2"/> Start Virtual Tour</a></div>)}
                 </div>
                 <div className="mt-12 pt-8 border-t">
                     <h2 className="text-3xl font-bold mb-6">Reviews</h2>
@@ -611,14 +622,14 @@ const AddPropertyView = () => {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [submitLoading, setSubmitLoading] = useState(false);
-  
+
     useEffect(() => {
         if (currentUser && currentUser.userType !== 'landlord') navigate('/');
     }, [currentUser, navigate]);
-  
+
     const handleChange = (e) => { const { name, value } = e.target; setPropertyDetails(prev => ({ ...prev, [name]: value })); };
     const handleImageChange = (e) => { setImageFiles(e.target.files); };
-  
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage(''); setError(''); setSubmitLoading(true);
@@ -635,12 +646,12 @@ const AddPropertyView = () => {
             setPropertyDetails({ title: '', description: '', address: '', city: '', price: '', property_type: 'apartment', bedrooms: '', bathrooms: '', amenities: '', lat: '', lng: '' });
             setImageFiles([]);
             document.getElementById('image-input').value = '';
-        } catch (err) { setError(err.message); } 
+        } catch (err) { setError(err.message); }
         finally { setSubmitLoading(false); }
     };
-  
+
     if (!currentUser) return null;
-  
+
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
             <div className="max-w-3xl w-full bg-white p-8 rounded-2xl shadow-2xl border">
@@ -692,7 +703,7 @@ const EditPropertyView = () => {
                 const response = await fetch(`http://localhost:3001/api/properties/${propertyId}`);
                 const data = await response.json();
                 if (!response.ok) throw new Error('Failed to fetch property details.');
-                if (currentUser && String(data.landlord_id) !== String(currentUser.uid)) { navigate('/'); } 
+                if (currentUser && String(data.landlord_id) !== String(currentUser.uid)) { navigate('/'); }
                 else { setPropertyDetails(data); }
             } catch (err) { setError(err.message); }
         };
@@ -716,19 +727,19 @@ const EditPropertyView = () => {
             const response = await fetch(`http://localhost:3001/api/properties/${propertyId}`, { method: 'PUT', headers: { ...getAuthHeaders() }, body: formData });
             if (!response.ok) { const data = await response.json(); throw new Error(data.message || 'Failed to update property.'); }
             setMessage('Property updated successfully!');
-        } catch (err) { setError(err.message); } 
+        } catch (err) { setError(err.message); }
         finally { setSubmitLoading(false); }
     };
 
     if (!propertyDetails) return <div className="min-h-screen flex items-center justify-center"><p>Loading property...</p></div>;
-    
+
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
-          <div className="max-w-3xl w-full bg-white p-8 rounded-2xl shadow-2xl border">
-              <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-8">Edit Property</h2>
-              {message && <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-6">{message}</div>}
-              {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-6">{error}</div>}
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
+            <div className="max-w-3xl w-full bg-white p-8 rounded-2xl shadow-2xl border">
+                <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-8">Edit Property</h2>
+                {message && <div className="bg-green-100 text-green-700 p-3 rounded-lg mb-6">{message}</div>}
+                {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-6">{error}</div>}
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Property Title</label>
                         <div className="relative"><Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input name="title" required value={propertyDetails.title} onChange={handleChange} className="w-full p-3 pl-10 border rounded-lg"/></div>
@@ -752,8 +763,8 @@ const EditPropertyView = () => {
                     <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Update Images (replaces all existing)</label><input type="file" name="images" onChange={handleImageChange} className="w-full" multiple/></div>
                     <div className="md:col-span-2 mt-6"><button type="submit" disabled={submitLoading} className="w-full py-3 px-4 text-lg font-semibold rounded-full text-white bg-indigo-600 hover:bg-indigo-700">{submitLoading ? 'Updating...' : 'Update Property'}</button></div>
                 </form>
-          </div>
-      </div>
+            </div>
+        </div>
     );
 };
 const MessagesView = () => {
@@ -767,18 +778,18 @@ const MessagesView = () => {
     const { conversationId } = useParams();
     const messagesEndRef = useRef(null);
     const ws = useRef(null);
-    
+
     // Guard clause
-    if (!currentUser) return null; 
+    if (!currentUser) return null;
 
     const fetchMessages = useCallback(async (convoId) => {
-      if (!convoId) return;
-      try {
-          const response = await fetch(`http://localhost:3001/api/conversations/${convoId}/messages`, { headers: getAuthHeaders() });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.message || 'Failed to fetch messages.');
-          setMessages(data);
-      } catch (err) { setError(err.message); }
+        if (!convoId) return;
+        try {
+            const response = await fetch(`http://localhost:3001/api/conversations/${convoId}/messages`, { headers: getAuthHeaders() });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Failed to fetch messages.');
+            setMessages(data);
+        } catch (err) { setError(err.message); }
     }, [getAuthHeaders]);
 
     useEffect(() => {
@@ -793,7 +804,7 @@ const MessagesView = () => {
                     const activeConvo = data.find(c => c._id === conversationId);
                     if (activeConvo) setSelectedConversation(activeConvo);
                 }
-            } catch (err) { setError(err.message); } 
+            } catch (err) { setError(err.message); }
             finally { setLoading(false); }
         };
         fetchConversations();
@@ -818,7 +829,7 @@ const MessagesView = () => {
     }, [selectedConversation, fetchMessages]);
 
     useEffect(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
     const handleSendMessage = (e) => {
@@ -972,7 +983,7 @@ const DashboardView = () => {
         <div className="min-h-screen bg-gray-100 py-12 px-4">
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-gray-800 mb-8">Landlord Dashboard</h1>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-2xl shadow-lg border flex items-center"><House size={40} className="text-blue-500 mr-4" /><div ><p className="text-3xl font-bold">{summary.totalProperties}</p><p className="text-gray-500">Total Properties</p></div></div>
                     <div className="bg-white p-6 rounded-2xl shadow-lg border flex items-center"><Eye size={40} className="text-green-500 mr-4" /><div ><p className="text-3xl font-bold">{summary.totalViews}</p><p className="text-gray-500">Total Views</p></div></div>
@@ -1016,26 +1027,26 @@ const DashboardView = () => {
 
 // --- Main App Component ---
 export default function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter>    
-        <Routes>
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<HomeView />} />
-            <Route path="properties" element={<PropertiesView />} />
-            <Route path="properties/:propertyId" element={<PropertyDetailsView />} />
-            <Route path="add-property" element={<AddPropertyView />} />
-            <Route path="edit-property/:propertyId" element={<EditPropertyView />} />
-            <Route path="messages" element={<MessagesView />} />
-            <Route path="messages/:conversationId" element={<MessagesView />} />
-            <Route path="favorites" element={<FavoritesView />} />
-            <Route path="dashboard" element={<DashboardView />} />
-          </Route>
-          
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  );
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<AppLayout />}>
+                        <Route index element={<HomeView />} />
+                        <Route path="properties" element={<PropertiesView />} />
+                        <Route path="properties/:propertyId" element={<PropertyDetailsView />} />
+                        <Route path="add-property" element={<AddPropertyView />} />
+                        <Route path="edit-property/:propertyId" element={<EditPropertyView />} />
+                        <Route path="messages" element={<MessagesView />} />
+                        <Route path="messages/:conversationId" element={<MessagesView />} />
+                        <Route path="favorites" element={<FavoritesView />} />
+                        <Route path="dashboard" element={<DashboardView />} />
+                    </Route>
+
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    );
 }
