@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, Outlet } from 'react-router-dom';
-import { Home, LogIn, UserPlus, Building, Menu, X, PlusCircle, House, MapPin, DollarSign, Bed, Bath, Tag, Image, BookOpen, Search, Filter, ArrowLeft, Edit, Trash2, MessageSquare, Send, Heart, Star, LayoutDashboard, Eye } from 'lucide-react';
+import { Home, LogIn, UserPlus, Building, Menu, X, PlusCircle, House, MapPin, DollarSign, Bed, Bath, Tag, Image, Search, Filter, ArrowLeft, Edit, Trash2, MessageSquare, Send, Heart, Star, LayoutDashboard, Eye } from 'lucide-react';
 
 // --- Auth Context ---
 const AuthContext = createContext();
@@ -173,7 +173,7 @@ const HomeView = () => {
                         </p>
                         <div className="flex justify-center space-x-4">
                             <button onClick={() => navigate('/login')} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><LogIn className="inline-block mr-2" />Login</button>
-                            <button onClick={() => navigate('/signup')} className="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><UserPlus className="inline-block mr-2" />Sign Up</button>
+                            <button onClick={() => navigate('/signup')} className="bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"><UserPlus className="inline-block mr-2" size={20} />Sign Up</button>
                         </div>
                     </div>
                 )}
@@ -679,7 +679,7 @@ const AddPropertyView = () => {
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label><input name="lng" type="number" step="any" required value={propertyDetails.lng} onChange={handleChange} className="w-full p-3 border rounded-lg"/></div>
                     <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Amenities (comma-separated)</label><div className="relative"><PlusCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input name="amenities" value={propertyDetails.amenities} onChange={handleChange} className="w-full p-3 pl-10 border rounded-lg"/></div></div>
                     <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea name="description" rows="4" value={propertyDetails.description} onChange={handleChange} className="w-full p-3 border rounded-lg"></textarea></div>
-                    <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Images (up to 5)</label><input type="file" id="image-input" name="images" onChange={handleImageChange} className="w-full" multiple /></div>
+                    <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Images (up to 5)</label><input type="file" id="image-input" name="images" onChange={handleImageChange} className="w-full" multiple/></div>
                     <div className="md:col-span-2 mt-6"><button type="submit" disabled={submitLoading} className="w-full py-3 px-4 text-lg font-semibold rounded-full text-white bg-indigo-600 hover:bg-indigo-700">{submitLoading ? 'Submitting...' : 'Add Property'}</button></div>
                 </form>
             </div>
@@ -779,9 +779,6 @@ const MessagesView = () => {
     const messagesEndRef = useRef(null);
     const ws = useRef(null);
 
-    // Guard clause
-    if (!currentUser) return null;
-
     const fetchMessages = useCallback(async (convoId) => {
         if (!convoId) return;
         try {
@@ -831,6 +828,8 @@ const MessagesView = () => {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    if (!currentUser) return null;
 
     const handleSendMessage = (e) => {
         e.preventDefault();
@@ -941,10 +940,10 @@ const FavoritesView = () => {
     );
 };
 const DashboardView = () => {
-    const { currentUser, getAuthHeaders } = useAuth();
+    const { currentUser, getAuthHeaders, loading } = useAuth();
     const navigate = useNavigate();
     const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [localLoading, setLocalLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -953,7 +952,7 @@ const DashboardView = () => {
                 navigate('/');
                 return;
             }
-            setLoading(true);
+            setLocalLoading(true);
             try {
                 const response = await fetch('http://localhost:3001/api/dashboard/stats', { headers: getAuthHeaders() });
                 const data = await response.json();
@@ -962,18 +961,18 @@ const DashboardView = () => {
             } catch (err) {
                 setError(err.message);
             } finally {
-                setLoading(false);
+                setLocalLoading(false);
             }
         };
         if (currentUser) {
             fetchStats();
-        } else if (!useAuth().loading) { // If auth is done loading and there's no user
+        } else if (!loading) { // If auth is done loading and there's no user
             navigate('/login');
         }
-    }, [currentUser, navigate, getAuthHeaders]);
+    }, [currentUser, navigate, getAuthHeaders, loading]);
 
     if (!currentUser) return null;
-    if (loading) return <div className="min-h-screen flex justify-center items-center"><p>Loading dashboard...</p></div>;
+    if (localLoading) return <div className="min-h-screen flex justify-center items-center"><p>Loading dashboard...</p></div>;
     if (error) return <div className="min-h-screen flex justify-center items-center"><p className="text-red-500">{error}</p></div>;
     if (!stats) return null;
 
@@ -982,7 +981,7 @@ const DashboardView = () => {
     return (
         <div className="min-h-screen bg-gray-100 py-12 px-4">
             <div className="max-w-6xl mx-auto">
-                <h1 className="text-4xl font-extrabold text-gray-800 mb-8">Landlord Dashboard</h1>
+                <h1 className="text-4xl font-extrabold text-gray-800 mb-8 text-center">Landlord Dashboard</h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="bg-white p-6 rounded-2xl shadow-lg border flex items-center"><House size={40} className="text-blue-500 mr-4" /><div ><p className="text-3xl font-bold">{summary.totalProperties}</p><p className="text-gray-500">Total Properties</p></div></div>
